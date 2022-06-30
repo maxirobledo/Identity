@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: oauth2-proxy
+  name: oauth2-proxy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: oauth2-proxy
+  template:
+    metadata:
+      labels:
+        app: oauth2-proxy
+    spec:
+      containers:
+      - name: oauth2-proxy-pod
+        args:
+          - --provider=keycloak-oidc
+          - --cookie-secret=Fph2Opl1zUJr5xOKJEpKGUi_-pbvB-2oWjjvKYigQ70=
+          - --email-domain=*
+          - --client-id=oauth2-proxy
+          - --client-secret=86Bm84a8ITX6JTiGJtNCR0YXYn4vbgyQ
+          - --redirect-url=https://oauth.snappypreview.com/oauth2/callback
+          - --oidc-issuer-url=http://keycloak:8080/realms/master
+          - --errors-to-info-log=true
+          # - --allowed-role=<realm role name> // Optional, required realm role
+          # - --allowed-role=<client id>:<client role name> // Optional, required client role
+
+          # - --provider=oidc
+          # - --email-domain=*
+          # - --cookie-secret=Fph2Opl1zUJr5xOKJEpKGUi_-pbvB-2oWjjvKYigQ70=
+          # - --upstream=https://example.snappypreview.com/
+          # - --client-id=oauth2-proxy
+          # - --client-secret=client-secret=86Bm84a8ITX6JTiGJtNCR0YXYn4vbgyQ
+          # - --redirect-url=https://test.snappypreview.com/oauth2/callback
+          # - --oidc-issuer-url=https://auth.snappypreview.com/realms/master
+          # - --scope=openid profile email
+          # - --pass-authorization-header=true
+          # - --pass-user-headers=true
+          # - --pass-access-token=true
+          # - --set-xauthrequest=true
+          # - --cookie-domain=snappypreview.com
+          # - --whitelist-domain=snappypreview.com
+        image: quay.io/oauth2-proxy/oauth2-proxy:latest        
+        ports:
+        - containerPort: 4180
+          protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: oauth2-proxy
+  name: oauth2-proxy-service
+spec:
+  selector:
+    app: oauth2-proxy
+  ports:
+  - name: http
+    port: 4180
+    protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: oauth2-proxy-ingress
+  annotations:            
+    cert-manager.io/issuer: letsencrypt-nginx
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: oauth.snappypreview.com
+    http:
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: oauth2-proxy-service
+              port: 
+                number: 4180        
+  tls:
+  - hosts:
+    - oauth.snappypreview.com    
+    secretName: cert-oauth2-proxy
