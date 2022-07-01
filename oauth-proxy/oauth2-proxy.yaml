@@ -22,9 +22,10 @@ spec:
           - --client-secret=o8NBJQ16Sh5zGSmk4LSEO9HouR0kYlrb
           - --redirect-url=https://test.snappypreview.com/oauth2/callback
           - --oidc-issuer-url=https://auth.snappypreview.com/realms/master
-          - --email-domain=*                
+          - --email-domain=*     
+          - --cookie-domain=snappypreview.com           
           - --cookie-secret=gMGJGeNSVvaexhtRX_3V811lfm7Ekhr5F02DD7LYyxc=
-          #- --errors-to-info-log=true
+          - --errors-to-info-log=true
         image: quay.io/oauth2-proxy/oauth2-proxy:latest        
         ports:
         - containerPort: 4180
@@ -49,7 +50,7 @@ kind: Ingress
 metadata:
   name: oauth2-proxy-ingress
   annotations:            
-    cert-manager.io/issuer: letsencrypt-nginx
+    cert-manager.io/issuer: letsencrypt
 spec:
   ingressClassName: nginx
   rules:
